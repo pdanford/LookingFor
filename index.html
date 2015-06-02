@@ -1,0 +1,95 @@
+<!DOCTYPE HTML>
+<!--https://github.com/pdanford/LookingFor.git-->
+<html>
+  <head>
+    <style>
+      body {
+        margin:  0px;
+        padding: 0px;
+      }
+    </style>
+  </head>
+  <body>
+    <p id='txt'>
+    The page you're looking for is on port 800
+    </p>
+  
+    <canvas id="canvas1"></canvas>
+
+    <script>
+        var element = document.getElementById('txt');
+        var text = element.textContent || element.innerText;
+        element.textContent = "";
+        element.innerText = "";
+
+        var canvas = document.getElementById('canvas1');
+        var context = canvas.getContext('2d');
+        var textWidth = 0;
+        var firstPass = true;
+        var leftPos = 0;
+        var rightPos = 0;
+        var rotation_rad = 0;
+        var timer_id = 0;
+
+        //Resize the canvas to fill browser window dynamically.
+        window.onresize=function() { resizeCanvas(); };
+
+        function resizeCanvas()
+            {
+            firstPass = true;
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            context.font="20px Lucida Console";
+            textWidth = context.measureText(text).width;
+            leftPos = window.innerWidth * 0.50 - 1.6*textWidth;
+            rightPos = window.innerWidth * 0.50 + 0.6*textWidth;
+            rotation_rad = 0;            
+            
+            clearTimeout(timer_id); //Clear any previous pending timers.
+            loop();
+            }
+                    
+        function drawText(x, y, rotation_rad, text)
+            {
+            context.save(); //Save original unrotated/untranslated canvas.
+
+            var translate_x = x + (textWidth/2);
+            var translate_y = y - 5;
+
+            context.translate(translate_x, translate_y);   //Translate canvas in order to rotate about the center.
+            context.rotate(rotation_rad);                  //Rotate canvas.
+            context.translate(-translate_x, -translate_y); //Untranslate canvas (to draw text at the specified x,y).
+
+            context.fillText(text, x, y);
+
+            context.restore(); //Return to the original unrotated/untranslated canvas.
+            }
+
+        function loop()
+            {
+            drawText(leftPos, window.innerHeight*0.5, rotation_rad, text);
+            drawText(window.innerWidth * 0.50 - 0.5*textWidth, window.innerHeight*0.5, rotation_rad, text);
+            drawText(rightPos, window.innerHeight*0.5, rotation_rad, text);
+
+            if(firstPass == true)
+                {
+                firstPass = false;
+                timer_id = window.setTimeout(function() { loop() }, 3000);
+                }
+            else
+                {
+                if(rotation_rad < Math.PI)
+                    {
+                    rightPos -= 0.036*textWidth;
+                    leftPos += 0.036*textWidth;
+                    timer_id = window.setTimeout(function() { loop() }, 25);
+                    }
+                }
+               
+            rotation_rad += 0.05;
+            }            
+
+        resizeCanvas();
+    </script>
+  </body>
+</html>
